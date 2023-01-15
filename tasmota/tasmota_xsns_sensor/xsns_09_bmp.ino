@@ -283,7 +283,7 @@ bool Bmx280Calibrate(uint8_t bmp_idx) {
     Bme280CalibrationData[bmp_idx].dig_H2 = I2cReadS16_LE(bmp_sensors[bmp_idx].bmp_address, BME280_REGISTER_DIG_H2, bus);
     Bme280CalibrationData[bmp_idx].dig_H3 = I2cRead8(bmp_sensors[bmp_idx].bmp_address, BME280_REGISTER_DIG_H3, bus);
     Bme280CalibrationData[bmp_idx].dig_H4 = (I2cRead8(bmp_sensors[bmp_idx].bmp_address, BME280_REGISTER_DIG_H4, bus) << 4) | (I2cRead8(bmp_sensors[bmp_idx].bmp_address, BME280_REGISTER_DIG_H4 + 1,bus) & 0xF);
-    Bme280CalibrationData[bmp_idx].dig_H5 = (I2cRead8(bmp_sensors[bmp_idx].bmp_address, BME280_REGISTER_DIG_H5 + 1, bus) << 4) | (I2cRead8(bmp_sensors[bmp_idx].bmp_address, BME280_REGISTER_DIG_H5,bus) >> 4);
+    Bme280CalibrationData[bmp_idx].dig_H5 = (I2cRead8(bmp_sensors[bmp_idx].bmp_address, BME280_REGISTER_DIG_H5 + 1, bus) << 4) | (I2cRead8(bmp_sensors[bmp_idx].bmp_address, BME280_REGISTER_DIG_H5,bus>>1) >> 4);
     Bme280CalibrationData[bmp_idx].dig_H6 = (int8_t)I2cRead8(bmp_sensors[bmp_idx].bmp_address, BME280_REGISTER_DIG_H6, bus);
     I2cWrite8(bmp_sensors[bmp_idx].bmp_address, BME280_REGISTER_CONTROL, 0x00, bus);      // sleep mode since writes to config can be ignored in normal mode (Datasheet 5.4.5/6 page 27)
     // Set before CONTROL_meas (DS 5.4.3)
@@ -474,6 +474,7 @@ void BmpDetect(void) {
 
   for (uint32_t i = 0; i < BMP_MAX_SENSORS; i++) {
     uint8_t bus = i >>1;
+    if ((bus>0) && (!TasmotaGlobal.i2c_enabled_2)) { continue; }
     if (!I2cSetDevice(bmp_addresses[i], bus)) { continue; }
     uint8_t bmp_type = I2cRead8(bmp_addresses[i], BMP_REGISTER_CHIPID, bus);
     if (bmp_type) {
